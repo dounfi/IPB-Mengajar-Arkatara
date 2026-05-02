@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel Sederhana - IPB Mengajar</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #3b5e07; }
+        label { font-weight: bold; margin-top: 15px; display: block; color: #333; }
+        select, input, textarea, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #fad90e; color: #1a2e00; font-weight: bold; cursor: pointer; border: none; margin-top: 20px; font-size: 16px; }
+        button:hover { background: #e5c300; }
+        .dynamic-fields { display: none; padding: 15px; background: #f9f9f9; border-radius: 5px; margin-top: 15px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Upload Data Web IPB Mengajar</h2>
+    
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="table">Pilih Bagian / Tabel:</label>
+        <select id="table" name="table" required onchange="toggleFields()">
+            <option value="">-- Pilih --</option>
+            <option value="staff_terbaik">Staff Terbaik</option>
+            <option value="berita_kabar">Berita & Kabar</option>
+            <option value="media_partner">Media Partner</option>
+        </select>
+
+        <!-- Fields Khusus Staff Terbaik -->
+        <div id="fields_staff_terbaik" class="dynamic-fields">
+            <label for="bulan">Bulan (misal: April 2025):</label>
+            <input type="text" id="bulan" name="bulan">
+        </div>
+
+        <!-- Fields Khusus Berita -->
+        <div id="fields_berita_kabar" class="dynamic-fields">
+            <label for="kategori">Kategori:</label>
+            <select id="kategori" name="kategori">
+                <option value="Kegiatan">Kegiatan</option>
+                <option value="Press Release">Press Release</option>
+                <option value="Rekrutmen">Rekrutmen</option>
+            </select>
+
+            <label for="tanggal">Tanggal:</label>
+            <input type="text" id="tanggal" name="tanggal" placeholder="Contoh: 15 April 2025">
+
+            <label for="judul">Judul Berita:</label>
+            <input type="text" id="judul" name="judul">
+
+            <label for="deskripsi">Deskripsi Singkat:</label>
+            <textarea id="deskripsi" name="deskripsi" rows="4"></textarea>
+        </div>
+
+        <!-- Field Gambar (Untuk Semuanya) -->
+        <label for="file_gambar">Upload Gambar/Poster:</label>
+        <input type="file" id="file_gambar" name="file_gambar" accept="image/*" required>
+
+        <button type="submit">Upload & Simpan</button>
+    </form>
+
+    <div id="result" style="margin-top: 20px; font-weight: bold; text-align: center;"></div>
+</div>
+
+<script>
+    function toggleFields() {
+        document.getElementById('fields_staff_terbaik').style.display = 'none';
+        document.getElementById('fields_berita_kabar').style.display = 'none';
+        
+        let table = document.getElementById('table').value;
+        if (table === 'staff_terbaik') {
+            document.getElementById('fields_staff_terbaik').style.display = 'block';
+        } else if (table === 'berita_kabar') {
+            document.getElementById('fields_berita_kabar').style.display = 'block';
+        }
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let formData = new FormData(this);
+        let resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = "Mengupload...";
+        resultDiv.style.color = "blue";
+
+        fetch('http://localhost:8000/upload.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                resultDiv.innerHTML = "✅ " + data.message;
+                resultDiv.style.color = "green";
+                this.reset();
+                toggleFields();
+            } else {
+                resultDiv.innerHTML = "❌ Error: " + data.error;
+                resultDiv.style.color = "red";
+            }
+        })
+        .catch(error => {
+            resultDiv.innerHTML = "❌ Terjadi kesalahan jaringan.";
+            resultDiv.style.color = "red";
+        });
+    });
+</script>
+
+</body>
+</html>
